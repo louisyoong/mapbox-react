@@ -7,6 +7,7 @@ interface Vessel {
   name: string;
   coordinates: number[];
   path: VesselFeature[];
+  angle: number;
 }
 
 interface VesselFeatureProperties {
@@ -25,10 +26,29 @@ const MapComponent: React.FC = () => {
       name: "Vessel 1",
       coordinates: [-74.0060152, 40.7127281],
       path: [],
+      angle: Math.random() * 2 * Math.PI,
     },
-    { id: 2, name: "Vessel 2", coordinates: [-74.1, 40.8], path: [] },
-    { id: 3, name: "Vessel 3", coordinates: [-73.9, 40.6], path: [] },
-    { id: 4, name: "Vessel 4", coordinates: [-73.5, 40.4], path: [] },
+    {
+      id: 2,
+      name: "Vessel 2",
+      coordinates: [-74.1, 40.8],
+      path: [],
+      angle: Math.random() * 2 * Math.PI,
+    },
+    {
+      id: 3,
+      name: "Vessel 3",
+      coordinates: [-73.9, 40.6],
+      path: [],
+      angle: Math.random() * 2 * Math.PI,
+    },
+    {
+      id: 4,
+      name: "Vessel 4",
+      coordinates: [-73.5, 40.4],
+      path: [],
+      angle: Math.random() * 4 * Math.PI,
+    },
 
     // Add more vessels as needed
   ];
@@ -74,9 +94,16 @@ const MapComponent: React.FC = () => {
                   type: "symbol", // Change the layer type to "symbol"
                   source: `vessel-source-${vessel.id}`,
                   layout: {
+                    "text-field": vessel.name,
+                    "text-size": 14,
+                    "text-offset": [0, -1.5],
+                    "text-anchor": "top",
                     "icon-image": "custom-marker",
-                    "icon-size": 0.09, // Adjust the size of the custom image
+                    "icon-size": 0.08,
                     "icon-allow-overlap": true, // Allow overlapping symbols
+                  },
+                  paint: {
+                    "text-color": "#ff0000", // Change the text color to red, for example
                   },
                 });
 
@@ -121,11 +148,21 @@ const MapComponent: React.FC = () => {
 
         setInterval(() => {
           vessels.forEach((vessel) => {
-            vessel.coordinates = [
-              vessel.coordinates[0] + 0.01 * Math.random(),
-              vessel.coordinates[1] + 0.01 * Math.random(),
-            ];
+            // Define a speed multiplier for vessel 4
+            const speedMultiplier = vessel.id === 4 ? 2 : 1;
 
+            // Generate a random angle change in radians
+            const angleChange = (Math.random() - 0.5) * 0.2;
+
+            // Apply the angle change to the current angle of movement
+            vessel.angle += angleChange;
+
+            vessel.coordinates = [
+              vessel.coordinates[0] +
+                0.01 * speedMultiplier * Math.cos(vessel.angle),
+              vessel.coordinates[1] +
+                0.01 * speedMultiplier * Math.sin(vessel.angle),
+            ];
             const source = map.getSource(`vessel-source-${vessel.id}`);
 
             if (source && source.type === "geojson") {
@@ -171,7 +208,7 @@ const MapComponent: React.FC = () => {
               }
             }
           });
-        }, 20000); // Update every 20 seconds
+        }, 5000); // Update every 5 seconds
       });
 
       // Clean up on unmount
